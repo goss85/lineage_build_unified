@@ -1,0 +1,65 @@
+From 65fd0cd76c6f4a95f31f35e3084d89f34e5ad119 Mon Sep 17 00:00:00 2001
+From: Gabor Balogh <goss85@gmail.com>
+Date: Fri, 1 May 2026 09:20:00 +0200
+Subject: [PATCH] frameworks/base: add microG permission + location provider
+ hints for LOS 17.1
+
+Keep only the parts required for LineageOS 17.1 integration:
+- core/res/AndroidManifest.xml
+- core/res/res/values/config.xml
+- core/res/res/values/strings.xml
+
+---
+ core/res/AndroidManifest.xml      | 7 +++++++
+ core/res/res/values/config.xml    | 2 ++
+ core/res/res/values/strings.xml   | 4 ++++
+ 3 files changed, 13 insertions(+)
+
+diff --git a/core/res/AndroidManifest.xml b/core/res/AndroidManifest.xml
+index d79a23d5..6cf49ecd 100644
+--- a/core/res/AndroidManifest.xml
++++ b/core/res/AndroidManifest.xml
+@@ -2658,6 +2658,13 @@
+         android:label="@string/permlab_getPackageSize"
+         android:description="@string/permdesc_getPackageSize"
+         android:protectionLevel="normal" />
++
++    <!-- @hide Allows an application to change the package signature as
++        seen by applications -->
++    <permission android:name="android.permission.FAKE_PACKAGE_SIGNATURE"
++        android:protectionLevel="dangerous"
++        android:label="@string/permlab_fakePackageSignature"
++        android:description="@string/permdesc_fakePackageSignature" />
+ 
+     <!-- @deprecated No longer useful, see
+          {@link android.content.pm.PackageManager#addPackageToPreferred}
+diff --git a/core/res/res/values/config.xml b/core/res/res/values/config.xml
+index 0db2e140..4a42e50d 100644
+--- a/core/res/res/values/config.xml
++++ b/core/res/res/values/config.xml
+@@ -1875,6 +1875,8 @@
+     <string-array name="config_locationProviderPackageNames" translatable="false">
+         <!-- The standard AOSP fused location provider -->
+         <item>com.android.location.fused</item>
++        <!-- The (faked) microg fused location provider (a free reimplementation) -->
++        <item>com.google.android.gms</item>
+     </string-array>
+ 
+     <!-- This string array can be overriden to enable test location providers initially. -->
+diff --git a/core/res/res/values/strings.xml b/core/res/res/values/strings.xml
+index 152b131a..f8d87a37 100644
+--- a/core/res/res/values/strings.xml
++++ b/core/res/res/values/strings.xml
+@@ -831,5 +831,10 @@
+ 
+     <!--  Permissions -->
++
++    <!-- Title of an application permission, listed so the user can choose whether they want to allow the application to do this. -->
++    <string name="permlab_fakePackageSignature">Spoof package signature</string>
++    <!-- Description of an application permission, listed so the user can choose whether they want to allow the application to do this. -->
++    <string name="permdesc_fakePackageSignature">Allows the app to pretend to be a different app. Malicious applications might be able to use this to access private application data. Legitimate uses include an emulator pretending to be what it emulates. Grant this permission with caution only!</string>
+ 
+     <!-- Title of an application permission, listed so the user can choose whether they want to allow the application to do this. -->
+     <string name="permlab_statusBar">disable or modify status bar</string>
+-- 
+2.25.1

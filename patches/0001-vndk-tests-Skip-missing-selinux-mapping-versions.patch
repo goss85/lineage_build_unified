@@ -1,0 +1,25 @@
+diff --git a/run.sh b/run.sh
+index 8f8d5c5..310e2e9 100644
+--- a/run.sh
++++ b/run.sh
+@@ -23,9 +23,19 @@ t="$(mktemp)"
+ done
+ 
+ for vndk in 28 29 30;do
++	mapping="$2"/system/etc/selinux/mapping/${vndk}.0.cil
++	if [ ! -f "$mapping" ]; then
++		echo "Skipping VNDK $vndk: missing mapping file $mapping"
++		continue
++	fi
++	if [ ! -d "$1"/sepolicies/$vndk ]; then
++		echo "Skipping VNDK $vndk: missing policy dir $1/sepolicies/$vndk"
++		continue
++	fi
++
+ 	for src in $(find "$1"/sepolicies/$vndk -name \*sepolicy.cil);do
+ 		plat_pub="$(echo "$src" |sed -E 's/_sepolicy.cil$/_plat_pub.cil/g')"
+-		./out/host/${TARGET_INCLUDE}-x86/bin/secilc -vvvv "$2"/system/etc/selinux/plat_sepolicy.cil -o "$t" -m -M true -G -N -c 30 "$2"/system/etc/selinux/mapping/${vndk}.0.cil $sext "$plat_pub" "$src"
++		./out/host/${TARGET_INCLUDE}-x86/bin/secilc -vvvv "$2"/system/etc/selinux/plat_sepolicy.cil -o "$t" -m -M true -G -N -c 30 "$mapping" $sext "$plat_pub" "$src"
+ 		./out/host/${TARGET_INCLUDE}-x86/bin/checkpolicy -M -bC -o /dev/null "$t"
+ 		rm -f "$t"
+ 	done
