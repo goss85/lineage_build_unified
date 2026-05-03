@@ -1,0 +1,63 @@
+diff --git a/cmds/bootanimation/BootAnimation.cpp b/cmds/bootanimation/BootAnimation.cpp
+index a3dbeeac723..a41a8607769 100644
+--- a/cmds/bootanimation/BootAnimation.cpp
++++ b/cmds/bootanimation/BootAnimation.cpp
+@@ -98,6 +98,37 @@ static const int TEXT_MISSING_VALUE = INT_MIN;
+ static const char EXIT_PROP_NAME[] = "service.bootanim.exit";
+ static const int ANIM_ENTRY_NAME_MAX = 256;
+ static constexpr size_t TEXT_POS_LEN_MAX = 16;
++static constexpr uint32_t DISPLAY_ROTATION_0 = 0;
++static constexpr uint32_t DISPLAY_ROTATION_90 = 1;
++static constexpr uint32_t DISPLAY_ROTATION_180 = 2;
++static constexpr uint32_t DISPLAY_ROTATION_270 = 3;
++
++static bool isQuarterTurn(uint32_t rotation) {
++    return rotation == DISPLAY_ROTATION_90 || rotation == DISPLAY_ROTATION_270;
++}
++
++static void setSurfaceRotation(SurfaceComposerClient::Transaction* transaction,
++        const sp<SurfaceControl>& control, uint32_t width, uint32_t height, uint32_t rotation) {
++    switch (rotation) {
++        case DISPLAY_ROTATION_90:
++            transaction->setPosition(control, 0, height)
++                    .setMatrix(control, 0, -1, 1, 0);
++            break;
++        case DISPLAY_ROTATION_180:
++            transaction->setPosition(control, width, height)
++                    .setMatrix(control, -1, 0, 0, -1);
++            break;
++        case DISPLAY_ROTATION_270:
++            transaction->setPosition(control, width, 0)
++                    .setMatrix(control, 0, 1, -1, 0);
++            break;
++        case DISPLAY_ROTATION_0:
++        default:
++            transaction->setPosition(control, 0, 0)
++                    .setMatrix(control, 1, 0, 0, 1);
++            break;
++    }
++}
+ 
+ // ---------------------------------------------------------------------------
+ 
+@@ -293,13 +324,18 @@ status_t BootAnimation::readyToRun() {
+         surface_height = dinfo.h;
+     }
+ 
++    if (isQuarterTurn(dinfo.orientation)) {
++        std::swap(surface_width, surface_height);
++    }
++
+     // create the native surface
+     sp<SurfaceControl> control = session()->createSurface(String8("BootAnimation"),
+             surface_width, surface_height, PIXEL_FORMAT_RGB_565);
+ 
+     SurfaceComposerClient::Transaction t;
+-    t.setLayer(control, 0x40000000)
+-        .apply();
++    t.setLayer(control, 0x40000000);
++    setSurfaceRotation(&t, control, surface_width, surface_height, dinfo.orientation);
++    t.apply();
+ 
+     sp<Surface> s = control->getSurface();
+ 

@@ -1,0 +1,12 @@
+diff --git a/bluetooth/bdroid_buildcfg.h b/bluetooth/bdroid_buildcfg.h
+index 166bd4a..3681b2a 100644
+--- a/bluetooth/bdroid_buildcfg.h
++++ b/bluetooth/bdroid_buildcfg.h
+@@ -49,6 +49,6 @@ static inline int BtmBypassExtraAclSetup() {
+ }
+ 
+ #define BTM_DEF_LOCAL_NAME BtmDefLocalName()
+-#define BTM_BYPASS_EXTRA_ACL_SETUP BtmBypassExtraAclSetup()
++#define BTM_BYPASS_EXTRA_ACL_SETUP TRUE
+ 
+ #endif

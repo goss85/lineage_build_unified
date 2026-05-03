@@ -1,0 +1,13 @@
+diff --git a/board-base.mk b/board-base.mk
+index c4205f6..98fb8a1 100644
+--- a/board-base.mk
++++ b/board-base.mk
+@@ -1,4 +1,8 @@
+ TARGET_SYSTEM_PROP := device/phh/treble/system.prop $(TARGET_SYSTEM_PROP)
++ifneq ($(wildcard treble_build_los/TB-X104L_system.prop),)
++TARGET_SYSTEM_PROP += treble_build_los/TB-X104L_system.prop
++endif
++
+ BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := device/phh/treble/bluetooth
+ TARGET_EXFAT_DRIVER := exfat
+ DEVICE_FRAMEWORK_MANIFEST_FILE := device/phh/treble/framework_manifest.xml

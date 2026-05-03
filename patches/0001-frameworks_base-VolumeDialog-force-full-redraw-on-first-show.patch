@@ -1,0 +1,50 @@
+diff --git a/packages/SystemUI/src/com/android/systemui/volume/VolumeDialogImpl.java b/packages/SystemUI/src/com/android/systemui/volume/VolumeDialogImpl.java
+index 629e4812d74..4243ad2434d 100644
+--- a/packages/SystemUI/src/com/android/systemui/volume/VolumeDialogImpl.java
++++ b/packages/SystemUI/src/com/android/systemui/volume/VolumeDialogImpl.java
+@@ -745,6 +745,31 @@ public class VolumeDialogImpl implements VolumeDialog,
+         }
+     }
+ 
++    private void forceDialogRedrawH() {
++        requestDialogRedraw(mDialogView);
++        requestDialogRedraw(mDialogMainView);
++        requestDialogRedraw(mDialogRowsView);
++        requestDialogRedraw(mRinger);
++        requestDialogRedraw(mODICaptionsView);
++        requestDialogRedraw(mMediaOutputView);
++        for (VolumeRow row : mRows) {
++            requestDialogRedraw(row.view);
++            requestDialogRedraw(row.header);
++            requestDialogRedraw(row.slider);
++            requestDialogRedraw(row.icon);
++            requestDialogRedraw(row.dndIcon);
++        }
++    }
++
++    private static void requestDialogRedraw(View view) {
++        if (view == null) {
++            return;
++        }
++        view.requestLayout();
++        view.invalidate();
++        view.postInvalidateOnAnimation();
++    }
++
+     private void hideCaptionsTooltip() {
+         if (mODICaptionsTooltipView != null && mODICaptionsTooltipView.getVisibility() == VISIBLE) {
+             mODICaptionsTooltipView.animate().cancel();
+@@ -887,9 +912,13 @@ public class VolumeDialogImpl implements VolumeDialog,
+                     .withStartAction(() -> {
+                         if (!mDialog.isShown()) {
+                             mWindowManager.addView(mDialog, mWindowParams);
++                            forceDialogRedrawH();
++                            mDialogView.post(() -> forceDialogRedrawH());
++                            mDialogView.postOnAnimation(() -> forceDialogRedrawH());
+                         }
+                     })
+                     .withEndAction(() -> {
++                        forceDialogRedrawH();
+                         if (!Prefs.getBoolean(mContext, Prefs.Key.TOUCHED_RINGER_TOGGLE, false)) {
+                             if (mRingerIcon != null) {
+                                 mRingerIcon.postOnAnimationDelayed(

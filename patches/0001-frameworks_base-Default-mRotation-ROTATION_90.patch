@@ -1,0 +1,13 @@
+diff --git a/services/core/java/com/android/server/wm/DisplayContent.java b/services/core/java/com/android/server/wm/DisplayContent.java
+index f436141cb29f..e230a55f1424 100644
+--- a/services/core/java/com/android/server/wm/DisplayContent.java
++++ b/services/core/java/com/android/server/wm/DisplayContent.java
+@@ -361,7 +361,7 @@ class DisplayContent extends WindowContainer<DisplayContent.DisplayChildWindowCo
+      *
+      * @see #updateRotationUnchecked()
+      */
+-    private int mRotation = 0;
++    private int mRotation = ROTATION_90;
+ 
+     /**
+      * Last applied orientation of the display.

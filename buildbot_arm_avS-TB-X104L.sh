@@ -19,7 +19,7 @@ echo\
 START=`date +%s`
 BUILD_DATE="$(date +%Y%m%d)"
 BL=$PWD/treble_build_los
-TREBLE_PATCHES_BRANCH="${TREBLE_PATCHES_BRANCH:-lineage-17.1}"
+TREBLE_PATCHES_BRANCH="${TREBLE_PATCHES_BRANCH:-lineage-17.1-TB-X104L}"
 TREBLE_PATCHES_REV="${TREBLE_PATCHES_REV:-}"
 ENABLE_PINNED_PATCHED_PROJECTS="${ENABLE_PINNED_PATCHED_PROJECTS:-0}"
 SYNC_JOBS="${SYNC_JOBS:-4}"
@@ -28,6 +28,8 @@ USE_CCACHE="${USE_CCACHE:-1}"
 CCACHE_DIR="${CCACHE_DIR:-/ccache}"
 CCACHE_MAX_SIZE="${CCACHE_MAX_SIZE:-50G}"
 CCACHE_EXEC="${CCACHE_EXEC:-$(command -v ccache || true)}"
+BOOTANIMATION_ROTATION="${BOOTANIMATION_ROTATION:-90}"
+ROTATE_BOOTANIMATION="${ROTATE_BOOTANIMATION:-0}"
 PINNED_CUTOFF_UTC="${PINNED_CUTOFF_UTC:-2021-08-08 23:59:59 +0000}"
 
 setup_ccache() {
@@ -209,7 +211,22 @@ PHH_NO_SYNC_RESET=1 bash "$APPLY_PATCHES_SH" treble_patches
 # Android 10 system/bt exposes bthh_interface_t::disconnect with one argument.
 # Keep the JNI side matched after repo sync resets packages/apps/Bluetooth.
 sed -i 's#sBluetoothHidInterface->disconnect((RawAddress*)addr, reconnect_allowed)#sBluetoothHidInterface->disconnect((RawAddress*)addr)#' packages/apps/Bluetooth/jni/com_android_bluetooth_hid_host.cpp
-sed -i 's/^#define BTM_BYPASS_EXTRA_ACL_SETUP.*/#define BTM_BYPASS_EXTRA_ACL_SETUP TRUE/' device/phh/treble/bluetooth/bdroid_buildcfg.h
+if git -C device/phh/treble apply --check "$BL/patches/0001-device_phh_treble-Force-BTM_BYPASS_EXTRA_ACL_SETUP.patch" >/dev/null 2>&1; then
+    git -C device/phh/treble apply "$BL/patches/0001-device_phh_treble-Force-BTM_BYPASS_EXTRA_ACL_SETUP.patch"
+elif git -C device/phh/treble apply --reverse --check "$BL/patches/0001-device_phh_treble-Force-BTM_BYPASS_EXTRA_ACL_SETUP.patch" >/dev/null 2>&1; then
+    echo "Patch already applied: 0001-device_phh_treble-Force-BTM_BYPASS_EXTRA_ACL_SETUP.patch"
+else
+    echo "ERROR: Cannot apply patch: $BL/patches/0001-device_phh_treble-Force-BTM_BYPASS_EXTRA_ACL_SETUP.patch"
+    exit 1
+fi
+if git -C device/phh/treble apply --check "$BL/patches/0001-device_phh_treble-Include-TB-X104L-system-prop.patch" >/dev/null 2>&1; then
+    git -C device/phh/treble apply "$BL/patches/0001-device_phh_treble-Include-TB-X104L-system-prop.patch"
+elif git -C device/phh/treble apply --reverse --check "$BL/patches/0001-device_phh_treble-Include-TB-X104L-system-prop.patch" >/dev/null 2>&1; then
+    echo "Patch already applied: 0001-device_phh_treble-Include-TB-X104L-system-prop.patch"
+else
+    echo "ERROR: Cannot apply patch: $BL/patches/0001-device_phh_treble-Include-TB-X104L-system-prop.patch"
+    exit 1
+fi
 cd frameworks/native
 git am $BL/patches/0001-Revert-surfaceflinger-Add-support-for-extension-lib.patch
 cd ../..
@@ -220,6 +237,10 @@ cd frameworks/base
 git am $BL/patches/0001-UI-Revive-navbar-layout-tuning-via-sysui_nav_bar-tun.patch
 git am $BL/patches/0001-Disable-vendor-mismatch-warning.patch
 git am $BL/patches/0001-MicroG-LOS17_1.patch
+git apply $BL/patches/0001-frameworks_base-BootAnimation-rotate-surface-to-match-display.patch
+git apply $BL/patches/0001-frameworks_base-VolumeDialog-force-full-redraw-on-first-show.patch
+git apply $BL/patches/0001-frameworks_base-Keyguard-keep-current-rotation-when.patch
+git apply $BL/patches/0001-frameworks_base-Default-mRotation-ROTATION_90.patch
 cd ../..
 cd lineage-sdk
 git am $BL/patches/0001-sdk-Invert-per-app-stretch-to-fullscreen.patch
@@ -231,7 +252,14 @@ cd vendor/lineage
 git am $BL/patches/0001-vendor_lineage-Log-privapp-permissions-whitelist-vio.patch
 cd ../..
 cd vendor/vndk-tests
-git apply $BL/patches/0001-vndk-tests-Skip-missing-selinux-mapping-versions.patch
+if git apply --check "$BL/patches/0001-vndk-tests-Skip-missing-selinux-mapping-versions.patch" >/dev/null 2>&1; then
+    git apply "$BL/patches/0001-vndk-tests-Skip-missing-selinux-mapping-versions.patch"
+elif git apply --reverse --check "$BL/patches/0001-vndk-tests-Skip-missing-selinux-mapping-versions.patch" >/dev/null 2>&1; then
+    echo "Patch already applied: 0001-vndk-tests-Skip-missing-selinux-mapping-versions.patch"
+else
+    echo "ERROR: Cannot apply patch: $BL/patches/0001-vndk-tests-Skip-missing-selinux-mapping-versions.patch"
+    exit 1
+fi
 cd ../..
 echo ""
 
@@ -270,10 +298,39 @@ export WITHOUT_CHECK_API=true
 export WITH_SU=true
 mkdir -p ~/build-output/
 
+rotate_bootanimation_in_out() {
+    if [ "$ROTATE_BOOTANIMATION" != "1" ]; then
+        echo "Bootanimation rotation disabled (ROTATE_BOOTANIMATION=$ROTATE_BOOTANIMATION)"
+        return 0
+    fi
+
+    local rotate_script="$BL/rotate_bootanimation.sh"
+    local target_zip="$OUT/system/media/bootanimation.zip"
+    local rotated_zip="$OUT/system/media/bootanimation-rotated.zip"
+
+    if [ ! -f "$rotate_script" ]; then
+        echo "ERROR: rotate script not found: $rotate_script"
+        return 1
+    fi
+    if [ ! -f "$target_zip" ]; then
+        echo "ERROR: bootanimation not found: $target_zip"
+        return 1
+    fi
+
+    echo "Rotating bootanimation to landscape (${BOOTANIMATION_ROTATION} deg)"
+    bash "$rotate_script" "$target_zip" "$rotated_zip" "$BOOTANIMATION_ROTATION"
+    mv -f "$rotated_zip" "$target_zip"
+
+}
+
 buildVariant() {
 	lunch ${1}-userdebug
 	make installclean
+	rm -rf "$OUT/obj/ETC/bootanimation.zip_intermediates" "$OUT/obj/BOOTANIMATION"
 	make -j"${BUILD_JOBS}" systemimage
+	rotate_bootanimation_in_out
+	# Repack system image from updated out/target/.../system tree.
+    make -j"${BUILD_JOBS}" snod
 	make vndk-test-sepolicy
 	mv $OUT/system.img ~/build-output/lineage-17.1-$BUILD_DATE-UNOFFICIAL-${1}.img
 }
