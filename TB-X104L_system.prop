@@ -8,5 +8,7 @@ ro.product.board=LenovoTB-X104L_EEA
 ro.product.manufacturer=LENOVO
 net.bt.name=Android
 
+# ro.surface_flinger.primary_display_orientation=ORIENTATION_90
+
 # set cutoff voltage to 3200mV
 ro.cutoff_voltage_mv=3200

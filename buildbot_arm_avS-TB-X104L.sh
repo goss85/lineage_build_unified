@@ -29,7 +29,7 @@ CCACHE_DIR="${CCACHE_DIR:-/ccache}"
 CCACHE_MAX_SIZE="${CCACHE_MAX_SIZE:-50G}"
 CCACHE_EXEC="${CCACHE_EXEC:-$(command -v ccache || true)}"
 BOOTANIMATION_ROTATION="${BOOTANIMATION_ROTATION:-90}"
-ROTATE_BOOTANIMATION="${ROTATE_BOOTANIMATION:-0}"
+ROTATE_BOOTANIMATION="${ROTATE_BOOTANIMATION:-1}"
 PINNED_CUTOFF_UTC="${PINNED_CUTOFF_UTC:-2021-08-08 23:59:59 +0000}"
 
 setup_ccache() {
@@ -237,10 +237,10 @@ cd frameworks/base
 git am $BL/patches/0001-UI-Revive-navbar-layout-tuning-via-sysui_nav_bar-tun.patch
 git am $BL/patches/0001-Disable-vendor-mismatch-warning.patch
 git am $BL/patches/0001-MicroG-LOS17_1.patch
-git apply $BL/patches/0001-frameworks_base-BootAnimation-rotate-surface-to-match-display.patch
+#git apply $BL/patches/0001-frameworks_base-BootAnimation-rotate-surface-to-match-display.patch
 git apply $BL/patches/0001-frameworks_base-VolumeDialog-force-full-redraw-on-first-show.patch
 git apply $BL/patches/0001-frameworks_base-Keyguard-keep-current-rotation-when.patch
-git apply $BL/patches/0001-frameworks_base-Default-mRotation-ROTATION_90.patch
+#git apply $BL/patches/0001-frameworks_base-Default-mRotation-ROTATION_90.patch
 cd ../..
 cd lineage-sdk
 git am $BL/patches/0001-sdk-Invert-per-app-stretch-to-fullscreen.patch
