@@ -238,7 +238,7 @@ git am $BL/patches/0001-UI-Revive-navbar-layout-tuning-via-sysui_nav_bar-tun.pat
 git am $BL/patches/0001-Disable-vendor-mismatch-warning.patch
 git am $BL/patches/0001-MicroG-LOS17_1.patch
 #git apply $BL/patches/0001-frameworks_base-BootAnimation-rotate-surface-to-match-display.patch
-git apply $BL/patches/0001-frameworks_base-VolumeDialog-force-full-redraw-on-first-show.patch
+#git apply $BL/patches/0001-frameworks_base-VolumeDialog-force-full-redraw-on-first-show.patch
 git apply $BL/patches/0001-frameworks_base-Keyguard-keep-current-rotation-when.patch
 #git apply $BL/patches/0001-frameworks_base-Default-mRotation-ROTATION_90.patch
 cd ../..
