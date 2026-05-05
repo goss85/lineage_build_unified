@@ -288,6 +288,9 @@ cd ../..
 cd vendor/lineage
 git am $BL/patches/0001-build_soong-Disable-generated_kernel_headers.patch
 cd ../..
+cd vendor/partner_gms
+git am $BL/patches/0001-vendor_partner_gms_A10_permissions.patch
+cd ../..
 echo ""
 
 echo "CHECK PATCH STATUS NOW!"
@@ -342,7 +345,7 @@ ELAPSEDM=$(($(($END-$START))/60))
 ELAPSEDS=$(($(($END-$START))-$ELAPSEDM*60))
 echo "Buildbot completed in $ELAPSEDM minutes and $ELAPSEDS seconds"
 echo ""
-buildVariant treble_arm_avS
+buildVariant treble_arm_avS_microg
 ls ~/build-output | grep 'lineage' || true
 if [ -n "${CCACHE_EXEC:-}" ] && [ -x "$CCACHE_EXEC" ]; then
     echo ""
