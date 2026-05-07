@@ -289,7 +289,14 @@ cd vendor/lineage
 git am $BL/patches/0001-build_soong-Disable-generated_kernel_headers.patch
 cd ../..
 cd vendor/partner_gms
-git am $BL/patches/0001-vendor_partner_gms_A10_permissions.patch
+if git apply --check "$BL/patches/0001-vendor_partner_gms_A10_permissions.patch" >/dev/null 2>&1; then
+    git apply "$BL/patches/0001-vendor_partner_gms_A10_permissions.patch"
+elif git apply --reverse --check "$BL/patches/0001-vendor_partner_gms_A10_permissions.patch" >/dev/null 2>&1; then
+    echo "Patch already applied: 0001-vendor_partner_gms_A10_permissions.patch"
+else
+    echo "ERROR: Cannot apply patch: $BL/patches/0001-vendor_partner_gms_A10_permissions.patch"
+    exit 1
+fi
 cd ../..
 echo ""
 
